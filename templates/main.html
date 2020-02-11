@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<head>
+  <title>{{ title }}</title>
+</head>
+
+<body>
+  <div>
+    <h1>Waterberry 1.0</h1>
+    <h2>The date and time on the server is: {{ time }}</h2>
+    {% if error != '' %}
+      <h2 style="color:red">Error: {{ error }}</h2>
+    {% endif %}
+    <h2> {{ text }} </h2>
+  </div>
+
+  <div>
+    <h2>Sensor states</h2>
+    {% for s in sensors %}
+      <div>
+        <label>Sensor {{ loop.index0 }}: {{ '%0.1f' % s|float }}% </label>
+      </div>
+    {% endfor %}
+    <a href="/sensor"><button>Check Soil Status</button></a> <br>
+  </div>
+
+  <div>
+    <h2>Drip Irrigation</h2>
+
+    {% if drip_edit %}
+      <form action="/auto/drip/config" method="POST">
+        <div class="form-group">
+          <label>Drip Delay: </label>
+          <input type="number" class="form-control" id="delay" name="delay" value={{ drip_delay }} placeholder="Delay in s">
+
+          <label>Drip Duration: </label>
+          <input type="number" class="form-control" id="duration" name="duration" value={{ drip_duration }} placeholder="Duration in s">
+
+          <button type="submit" class="btn btn-primary" name="submit" value="save">Save</button>
+          <button type="submit" class="btn btn-primary" name="submit" value="cancel">Cancel</button>
+        </div>
+      </form>
+    {% else %}
+      <div>
+        <label>Drip Delay: {{ drip_delay }}</label>
+        <label>Drip Duration: {{ drip_duration }}</label>
+        <a href="/auto/drip/edit"><button>Edit</button></a>
+      </div>
+    {% endif %}
+
+    {% for d in drips %}
+      {% if d.state %}
+        <div>
+          <label>Pump {{ d.pump }}: ENABLED </label>
+          <a href="/auto/drip/{{ d.pump }}/OFF"><button>Disable</button></a>
+        </div>
+      {% else %}
+        <div>
+          <label>Pump {{ d.pump }}: DISABLED </label>
+          <a href="/auto/drip/{{ d.pump }}/ON"><button>Enable</button></a>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <div>
+    <h2>Time based water automations</h2>
+
+    {% for t in timed %}
+      {% if timed_edit is not none and loop.index0 == timed_edit.id %}
+        <form action="/auto/timebased/{{ loop.index0 }}" method="POST">
+          <div class="form-group">
+            <label>Pump: </label>
+            <input type="number" class="form-control" id="pump" name="pump" value={{ timed_edit.pump }} placeholder="Pump ID">
+
+            <label>Duration: </label>
+            <input type="number" class="form-control" id="delay" name="delay" value={{ timed_edit.delay }} placeholder="Delay in s">
+        
+            <label>At: </label>
+            <input type="time" class="form-control" id="when" name="when" value={{ timed_edit.when }} placeholder="Time of day">
+
+            <button type="submit" class="btn btn-primary" name="submit" value="save">Save</button>
+            <button type="submit" class="btn btn-primary" name="submit" value="cancel">Cancel</button>
+          </div>
+        </form>
+      
+      {% else %}
+        <div>
+          <label>Pump: {{ t.pump }}</label>
+          <label>Duration: {{ t.delay }}s</label>
+          <label>At: {{ t.when }}</label>
+          <a href="/auto/timebased/{{ loop.index0 }}/edit"><button>Edit</button></a>
+          <a href="/auto/timebased/{{ loop.index0 }}/delete"><button>Delete</button></a>
+        </div>
+      {% endif %}
+    {% endfor %}
+    
+    <a href="/auto/timebased/create"><button>Create new</button></a>
+  </div>
+
+  <div>
+    <h2>Last watered</h2>
+    {% for lw in last_watered %}
+      <div>
+        <lable>Pump {{ loop.index0 }}: {{ lw }}</label>
+      </div>
+    {% endfor %}
+
+    <form action="/water" method="POST">
+      <div class="form-group">
+        <label>Water now: </label>
+        <label>Pump: </label>
+        <input type="number" class="form-control" id="pump" name="pump" value={{ water_now_pump }} placeholder="Pump ID"/>
+        <label>Duration: </label>
+        <input type="number" class="form-control" id="duration" name="duration" value={{ water_now_duration }} placeholder="Duration (s)"/>
+
+        <button type="submit" class="btn btn-primary" name="submit" value="water">Water</button>
+      </div>
+    </form>
+  </div>
+
+  <div>
+    <h2>Logs for {{ logdate }}</h2>
+    <div>
+      <a href="/logs/prev"><button>Previous day</button></a>
+      <a href="/logs/next"><button>Next day</button></a>
+    </div>
+    <div>
+      {% for line in logs %}
+        <li>{{ line }}</li>
+      {% endfor %}
+    </div>
+  </div>
+
+</body>
+</html>
